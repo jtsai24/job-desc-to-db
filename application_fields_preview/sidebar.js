@@ -1,5 +1,3 @@
-import { extractApplicationFields } from "./extract-application-fields.js";
-
 const extractButton = document.querySelector("#extract-fields");
 const statusElement = document.querySelector("#status");
 
@@ -14,11 +12,13 @@ async function readPage() {
       currentWindow: true,
     });
 
-    const [{ result: extractedFields }] =
-      await browser.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: extractApplicationFields,
-      });
+    const scriptResults = await browser.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["extract-application-fields.js"],
+    });
+
+    const firstScriptResult = scriptResults[0];
+    const extractedFields = firstScriptResult.result;
 
     const dateFirstSeen = new Date().toLocaleDateString("en-CA");
     const applicationFields = {
@@ -55,6 +55,6 @@ function displayApplicationFields(fields) {
     fields.status || "Not found";
   document.querySelector("#sort-id").textContent =
     fields.sortId || "Not found";
-  document.querySelector("#extraction-method").textContent =
-    fields.extractionMethod || "Not found";
+  document.querySelector("#capture-method").textContent =
+    fields.captureMethod || "Not found";
 }
