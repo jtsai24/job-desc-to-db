@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Notion Connection Prototype",
+  "version": "0.1.0",
+  "permissions": ["storage"],
+  "host_permissions": ["https://api.notion.com/*"],
+  "sidebar_action": {
+    "default_title": "Notion Connection",
+    "default_panel": "sidebar.html"
+  }
+}

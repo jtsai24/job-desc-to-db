@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Job Page Reader Sidebar",
+  "name": "Application Fields Preview",
   "version": "0.1.0",
   "permissions": ["scripting"],
   "host_permissions": ["<all_urls>"],
   "sidebar_action": {
-    "default_title": "Job Capture",
+    "default_title": "Application Fields Preview",
     "default_panel": "sidebar.html"
   }
 }
