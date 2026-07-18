@@ -1,4 +1,4 @@
-function extractJobDescription() {
+function captureJobDescription() {
   const jsonLdScripts = document.querySelectorAll(
     'script[type="application/ld+json"]',
   );
@@ -34,10 +34,48 @@ function extractJobDescription() {
     }
   }
 
+  const linkedInDescription = readLinkedInAboutTheJob();
+
+  if (linkedInDescription) {
+    return linkedInDescription;
+  }
+
   return {
     jobDescription: null,
-    captureMethod: "JobPosting description not found",
+    captureMethod: "Job description not found",
   };
 }
 
-extractJobDescription();
+function readLinkedInAboutTheJob() {
+  const isLinkedInJobPage =
+    window.location.hostname.endsWith("linkedin.com") &&
+    window.location.pathname.startsWith("/jobs/view/");
+
+  if (!isLinkedInJobPage) {
+    return null;
+  }
+
+  const aboutJobHeading = [...document.querySelectorAll("h2")].find(
+    (heading) => heading.textContent.trim() === "About the job",
+  );
+
+  if (!aboutJobHeading) {
+    return null;
+  }
+
+  const descriptionElement =
+    aboutJobHeading.parentElement.nextElementSibling.querySelector(
+      '[data-testid="expandable-text-box"]',
+    );
+
+  if (!descriptionElement) {
+    return null;
+  }
+
+  return {
+    jobDescription: descriptionElement.innerText.trim(),
+    captureMethod: "Page rules: LinkedIn About the job",
+  };
+}
+
+captureJobDescription();
