@@ -62,7 +62,15 @@ async function readPage() {
       applicationFields,
     );
 
-    statusElement.textContent = `Saved to Notion: ${notionPage.url}`;
+    statusElement.textContent = "Saved to Notion: ";
+
+    const notionPageLink = document.createElement("a");
+    notionPageLink.href = notionPage.url;
+    notionPageLink.textContent = notionPage.url;
+    notionPageLink.target = "_blank";
+    notionPageLink.rel = "noopener noreferrer";
+
+    statusElement.append(notionPageLink);
   } catch (error) {
     statusElement.textContent = `Could not read this page: ${error.message}`;
   }
