@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Application Fields Preview</title>
+  </head>
+  <body>
+    <h1>Application Fields Preview</h1>
+    <button id="extract-fields" type="button">Capture to Notion</button>
+    <p id="status">No page inspected yet.</p>
+
+    <dl>
+      <dt>Job Title</dt>
+      <dd id="job-title">—</dd>
+
+      <dt>Company</dt>
+      <dd id="company">—</dd>
+
+      <dt>URL</dt>
+      <dd id="job-url">—</dd>
+
+      <dt>Date first seen</dt>
+      <dd id="date-first-seen">—</dd>
+
+      <dt>Source</dt>
+      <dd id="source">—</dd>
+
+      <dt>Job type</dt>
+      <dd id="job-type">—</dd>
+
+      <dt>Status</dt>
+      <dd id="application-status">—</dd>
+
+      <dt>sort id</dt>
+      <dd id="sort-id">—</dd>
+
+      <dt>Capture Method</dt>
+      <dd id="capture-method">—</dd>
+    </dl>
+
+    <hr>
+
+    <h2>Job Description</h2>
+
+    <p>
+      Capture Method:
+      <span id="description-capture-method">—</span>
+    </p>
+
+    <pre id="job-description">No description extracted yet.</pre>
+
+    <script type="module" src="sidebar.js"></script>
+  </body>
+</html>
