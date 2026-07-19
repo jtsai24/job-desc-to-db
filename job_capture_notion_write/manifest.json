@@ -4,6 +4,11 @@
   "version": "0.1.0",
   "permissions": ["scripting", "storage"],
   "host_permissions": ["<all_urls>"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "job-capture-notion-write@jtsai24.local"
+    }
+  },
   "sidebar_action": {
     "default_title": "Application Fields Preview",
     "default_panel": "sidebar.html"
