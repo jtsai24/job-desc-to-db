@@ -1,4 +1,7 @@
-import { createNotionApplication } from "./notion-client.js";
+import {
+  createNotionApplication,
+  createNotionJobDescription,
+} from "./notion-client.js";
 
 const extractButton = document.querySelector("#extract-fields");
 const statusElement = document.querySelector("#status");
@@ -60,6 +63,14 @@ async function readPage() {
     const notionPage = await createNotionApplication(
       notionToken,
       applicationFields,
+    );
+
+    statusElement.textContent = "Saving job description...";
+
+    await createNotionJobDescription(
+      notionToken,
+      notionPage.id,
+      extractedDescription.jobDescription,
     );
 
     statusElement.textContent = "Saved to Notion: ";

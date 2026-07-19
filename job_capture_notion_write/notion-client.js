@@ -98,3 +98,45 @@ export async function createNotionApplication(
 
   return responseBody;
 }
+
+export async function createNotionJobDescription(
+  notionToken,
+  applicationPageId,
+  jobDescription,
+) {
+  const response = await fetch("https://api.notion.com/v1/pages", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${notionToken}`,
+      "Content-Type": "application/json",
+      "Notion-Version": "2026-03-11",
+    },
+    body: JSON.stringify({
+      parent: {
+        page_id: applicationPageId,
+      },
+      properties: {
+        title: {
+          title: [
+            {
+              text: {
+                content: "Job Description",
+              },
+            },
+          ],
+        },
+      },
+      markdown: jobDescription,
+    }),
+  });
+
+  const responseBody = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      responseBody.message ?? `Notion returned status ${response.status}`,
+    );
+  }
+
+  return responseBody;
+}
