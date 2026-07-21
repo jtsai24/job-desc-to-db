@@ -3,12 +3,17 @@
   <head>
     <meta charset="utf-8">
     <title>Application Fields Preview</title>
+    <style>
+      .warning-yellow { background: #fff3cd; }
+      .warning-red { background: #f8d7da; }
+    </style>
   </head>
   <body>
     <h1>Application Fields Preview</h1>
     <button id="extract-fields" type="button">Extract and review</button>
     <button id="save-to-notion" type="button" disabled>Save to Notion</button>
     <p id="status">No page inspected yet.</p>
+    <p id="duplicate-warning" hidden></p>
 
     <dl>
       <dt>Job Title</dt>

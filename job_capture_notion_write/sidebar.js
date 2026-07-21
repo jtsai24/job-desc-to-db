@@ -2,10 +2,12 @@ import {
   createNotionApplication,
   createNotionJobDescription,
 } from "./notion-client.js";
+import { checkForDuplicate } from "./check-duplicate.js";
 
 const extractButton = document.querySelector("#extract-fields");
 const saveButton = document.querySelector("#save-to-notion");
 const statusElement = document.querySelector("#status");
+const duplicateWarning = document.querySelector("#duplicate-warning");
 
 let reviewedApplicationFields = null;
 let reviewedDescription = null;
@@ -31,6 +33,7 @@ async function readPage() {
   reviewedDescription = null;
   reviewedTabId = null;
   saveButton.disabled = true;
+  clearDuplicateWarning();
   statusElement.textContent = "Reading page...";
 
   try {
@@ -72,6 +75,15 @@ async function readPage() {
     reviewedApplicationFields = applicationFields;
     reviewedDescription = extractedDescription;
     reviewedTabId = tab.id;
+
+    statusElement.textContent = "Checking for duplicates...";
+
+    try {
+      const duplicate = await runDuplicateCheck(applicationFields);
+      displayDuplicateWarning(duplicate);
+    } catch (error) {
+      displayDuplicateCheckError(error);
+    }
 
     saveButton.disabled = false;
     statusElement.textContent =
@@ -129,6 +141,7 @@ async function saveToNotion() {
     reviewedApplicationFields = null;
     reviewedDescription = null;
     reviewedTabId = null;
+    clearDuplicateWarning();
   } catch (error) {
     statusElement.textContent = `Could not save to Notion: ${error.message}`;
     saveButton.disabled = false;
@@ -140,8 +153,44 @@ function invalidateReview() {
   reviewedDescription = null;
   reviewedTabId = null;
   saveButton.disabled = true;
+  clearDuplicateWarning();
   statusElement.textContent =
     "The active page changed. Extract and review it before saving.";
+}
+
+async function runDuplicateCheck(applicationFields) {
+  const storedValues = await browser.storage.local.get("notionToken");
+
+  if (!storedValues.notionToken) {
+    throw new Error("Notion token is missing.");
+  }
+
+  return checkForDuplicate(storedValues.notionToken, applicationFields);
+}
+
+function displayDuplicateWarning(duplicate) {
+  if (!duplicate) {
+    return;
+  }
+
+  duplicateWarning.className = `warning-${duplicate.warningLevel}`;
+  duplicateWarning.textContent =
+    duplicate.warningLevel === "red"
+      ? "Duplicate found: URL matches an existing job."
+      : "Possible duplicate: company and job title match an existing job.";
+  duplicateWarning.hidden = false;
+}
+
+function displayDuplicateCheckError(error) {
+  duplicateWarning.textContent =
+    `Duplicate check unavailable: ${error.message}`;
+  duplicateWarning.hidden = false;
+}
+
+function clearDuplicateWarning() {
+  duplicateWarning.hidden = true;
+  duplicateWarning.textContent = "";
+  duplicateWarning.className = "";
 }
 
 function displayJobDescription(description) {
