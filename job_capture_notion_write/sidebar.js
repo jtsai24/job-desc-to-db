@@ -4,25 +4,36 @@ import {
 } from "./notion-client.js";
 
 const extractButton = document.querySelector("#extract-fields");
+const saveButton = document.querySelector("#save-to-notion");
 const statusElement = document.querySelector("#status");
 
+let reviewedApplicationFields = null;
+let reviewedDescription = null;
+let reviewedTabId = null;
+
 extractButton.addEventListener("click", readPage);
+saveButton.addEventListener("click", saveToNotion);
+
+browser.tabs.onActivated.addListener((activeInfo) => {
+  if (reviewedTabId !== null && activeInfo.tabId !== reviewedTabId) {
+    invalidateReview();
+  }
+});
+
+browser.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (tabId === reviewedTabId && changeInfo.url) {
+    invalidateReview();
+  }
+});
 
 async function readPage() {
-  statusElement.textContent = "Checking Notion token...";
+  reviewedApplicationFields = null;
+  reviewedDescription = null;
+  reviewedTabId = null;
+  saveButton.disabled = true;
+  statusElement.textContent = "Reading page...";
 
   try {
-    const storedValues = await browser.storage.local.get("notionToken");
-    const notionToken = storedValues.notionToken;
-
-    if (!notionToken) {
-      statusElement.textContent =
-        "Cannot capture: Notion token is missing from browser storage.";
-      return;
-    }
-
-    statusElement.textContent = "Reading page...";
-
     const [tab] = await browser.tabs.query({
       active: true,
       currentWindow: true,
@@ -58,11 +69,43 @@ async function readPage() {
     displayApplicationFields(applicationFields);
     displayJobDescription(extractedDescription);
 
+    reviewedApplicationFields = applicationFields;
+    reviewedDescription = extractedDescription;
+    reviewedTabId = tab.id;
+
+    saveButton.disabled = false;
+    statusElement.textContent =
+      "Review the extracted fields, then save when they look correct.";
+  } catch (error) {
+    statusElement.textContent = `Could not read this page: ${error.message}`;
+  }
+}
+
+async function saveToNotion() {
+  if (!reviewedApplicationFields || !reviewedDescription) {
+    statusElement.textContent = "Extract and review a page before saving.";
+    return;
+  }
+
+  saveButton.disabled = true;
+  statusElement.textContent = "Checking Notion token...";
+
+  try {
+    const storedValues = await browser.storage.local.get("notionToken");
+    const notionToken = storedValues.notionToken;
+
+    if (!notionToken) {
+      statusElement.textContent =
+        "Cannot save: Notion token is missing from browser storage.";
+      saveButton.disabled = false;
+      return;
+    }
+
     statusElement.textContent = "Saving to Notion...";
 
     const notionPage = await createNotionApplication(
       notionToken,
-      applicationFields,
+      reviewedApplicationFields,
     );
 
     statusElement.textContent = "Saving job description...";
@@ -70,7 +113,7 @@ async function readPage() {
     await createNotionJobDescription(
       notionToken,
       notionPage.id,
-      extractedDescription.jobDescription,
+      reviewedDescription.jobDescription,
     );
 
     statusElement.textContent = "Saved to Notion: ";
@@ -82,9 +125,23 @@ async function readPage() {
     notionPageLink.rel = "noopener noreferrer";
 
     statusElement.append(notionPageLink);
+
+    reviewedApplicationFields = null;
+    reviewedDescription = null;
+    reviewedTabId = null;
   } catch (error) {
-    statusElement.textContent = `Could not read this page: ${error.message}`;
+    statusElement.textContent = `Could not save to Notion: ${error.message}`;
+    saveButton.disabled = false;
   }
+}
+
+function invalidateReview() {
+  reviewedApplicationFields = null;
+  reviewedDescription = null;
+  reviewedTabId = null;
+  saveButton.disabled = true;
+  statusElement.textContent =
+    "The active page changed. Extract and review it before saving.";
 }
 
 function displayJobDescription(description) {
