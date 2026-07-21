@@ -1,5 +1,24 @@
 // This file is the coordinator for extracting fields from a job webpage.
 (() => {
+  function cleanJobUrl(rawUrl) {
+    const url = new URL(rawUrl, window.location.href);
+    const isLinkedInJob =
+      url.hostname.endsWith("linkedin.com") &&
+      url.pathname.startsWith("/jobs/view/");
+
+    if (isLinkedInJob) {
+      const jobId = url.pathname
+        .replace("/jobs/view/", "")
+        .split("/")[0];
+
+      if (/^\d+$/.test(jobId)) {
+        return `https://www.linkedin.com/jobs/view/${jobId}`;
+      }
+    }
+
+    return url.href;
+  }
+
   function extractLinkedInCompany() {
     const isLinkedInJobPage =
       window.location.hostname.endsWith("linkedin.com") &&
@@ -74,7 +93,7 @@
         return {
           jobTitle: jobPosting.title?.trim() ?? null,
           company: jobPosting.hiringOrganization?.name?.trim() ?? null,
-          url: jobPosting.url ?? window.location.href,
+          url: cleanJobUrl(jobPosting.url ?? window.location.href),
           captureMethod: "Structured data: Schema.org JobPosting",
         };
       }
@@ -99,7 +118,7 @@
       titleParts[0] ??
       null,
     company: chooseCompanyName(jobBoardFields, titleParts),
-    url: window.location.href,
+    url: cleanJobUrl(window.location.href),
     captureMethod:
       jobBoardFields?.captureMethod ??
       "Page rules: h1 and document title",
