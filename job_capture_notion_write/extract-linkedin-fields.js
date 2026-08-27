@@ -37,12 +37,39 @@ function extractLinkedInWorkplaceType() {
 // it is deliberately narrow: a leaf element whose whole text is just the
 // age phrase. Both the posted-date and location extractors anchor to this
 // same row so they read from the current job, not an unrelated one.
+//
+// Confirmed markup nests the age text a level deeper than the location and
+// applicant-count text, e.g. <span><strong>Reposted 2 hours ago</strong>
+// </span>. Searching "main *" rather than just "main p, main span" is what
+// picks up that <strong> leaf.
+//
+// On search-results pages the DOM also contains other job cards (a list
+// rail, "similar jobs," etc.), each with their own "ago" text, sometimes
+// rendered before the current job's own detail pane. Anchoring to the
+// current job's title (h1) and taking the first "ago" candidate that
+// follows it in document order keeps this scoped to the current job.
 function findLinkedInPostingAgeElement() {
-  return [...document.querySelectorAll("main p, main span")].find(
+  const titleElement = document.querySelector("h1");
+  const candidates = [...document.querySelectorAll("main *")].filter(
     (element) =>
       element.children.length === 0 &&
       /\bago\s*$/i.test(element.textContent.trim()),
   );
+
+  if (!titleElement) {
+    return candidates[0];
+  }
+
+  for (const candidate of candidates) {
+    const position = titleElement.compareDocumentPosition(candidate);
+    const candidateIsAfterTitle = position & Node.DOCUMENT_POSITION_FOLLOWING;
+
+    if (candidateIsAfterTitle) {
+      return candidate;
+    }
+  }
+
+  return undefined;
 }
 
 function extractLinkedInPostedDateRaw() {
@@ -58,7 +85,11 @@ function extractLinkedInJobLocation() {
     return null;
   }
 
-  const metaRow = findLinkedInPostingAgeElement()?.parentElement;
+  // Confirmed markup wraps the row in a <p>, with the age text nested a
+  // level deeper (see findLinkedInPostingAgeElement). Climb to the nearest
+  // <p> ancestor rather than taking .parentElement, so this lands on the
+  // shared row instead of the age text's own narrow wrapper span.
+  const metaRow = findLinkedInPostingAgeElement()?.closest("p");
 
   if (!metaRow) {
     return null;
