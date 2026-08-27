@@ -30,23 +30,48 @@ function extractLinkedInWorkplaceType() {
   return null;
 }
 
+// The posting-age text lives in the header row under the title, alongside
+// the location and applicant count, e.g.
+// "United States · 1 day ago · Over 100 people clicked apply". This is a
+// documented structural assumption, not a semantically labeled field, so
+// it is deliberately narrow: a leaf element whose whole text is just the
+// age phrase. Both the posted-date and location extractors anchor to this
+// same row so they read from the current job, not an unrelated one.
+function findLinkedInPostingAgeElement() {
+  return [...document.querySelectorAll("main p, main span")].find(
+    (element) =>
+      element.children.length === 0 &&
+      /\bago\s*$/i.test(element.textContent.trim()),
+  );
+}
+
 function extractLinkedInPostedDateRaw() {
   if (!isLinkedInJobPage()) {
     return null;
   }
 
-  // The posting-age text lives in the header row under the title, e.g.
-  // "United States · 1 day ago · Over 100 people clicked apply". This is
-  // a documented structural assumption, not a semantically labeled
-  // field, so it is deliberately narrow: a leaf element whose whole text
-  // is just the age phrase.
-  const agoElement = [...document.querySelectorAll("main p, main span")].find(
-    (element) =>
-      element.children.length === 0 &&
-      /\bago\s*$/i.test(element.textContent.trim()),
+  return findLinkedInPostingAgeElement()?.textContent?.trim() ?? null;
+}
+
+function extractLinkedInJobLocation() {
+  if (!isLinkedInJobPage()) {
+    return null;
+  }
+
+  const metaRow = findLinkedInPostingAgeElement()?.parentElement;
+
+  if (!metaRow) {
+    return null;
+  }
+
+  // The location is the first leaf sibling in the same row as the posting
+  // age, e.g. "San Mateo, CA · 2 days ago · 93 people clicked apply". Even
+  // remote listings show a location here (e.g. "United States").
+  const firstLeafSibling = [...metaRow.children].find(
+    (element) => element.children.length === 0 && element.textContent.trim(),
   );
 
-  return agoElement?.textContent?.trim() ?? null;
+  return firstLeafSibling?.textContent?.trim() ?? null;
 }
 
 function extractLinkedInCompany() {

@@ -77,6 +77,7 @@
     company: chooseCompanyName(jobBoardFields, titleParts),
     url: cleanJobUrl(window.location.href),
     workplaceType: extractLinkedInWorkplaceType(),
+    jobLocation: extractLinkedInJobLocation(),
     postedDateRaw: extractLinkedInPostedDateRaw(),
     captureMethod:
       jobBoardFields?.captureMethod ??

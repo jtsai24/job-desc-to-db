@@ -211,6 +211,8 @@ function displayApplicationFields(fields) {
     fields.url || "Not found";
   document.querySelector("#workplace-type").textContent =
     fields.workplaceType || "Not found";
+  document.querySelector("#job-location").textContent =
+    fields.jobLocation || "Not found";
   document.querySelector("#posted-date-raw").textContent =
     fields.postedDateRaw || "Not found";
   document.querySelector("#date-first-seen").textContent =
