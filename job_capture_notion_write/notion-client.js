@@ -1,6 +1,12 @@
 const JOB_DATA_SOURCE_ID =
   "3588d66b-99dd-8084-a239-000b69f0949f";
 
+const WORKPLACE_TYPE_TO_LOCATION_TYPE = {
+  remote: "remote only",
+  hybrid: "hybrid",
+  "on-site": "onsite",
+};
+
 export async function createNotionApplication(
   notionToken,
   applicationFields,
@@ -84,6 +90,35 @@ export async function createNotionApplication(
             },
           ],
         },
+        ...(applicationFields.jobLocation
+          ? {
+              Location: {
+                rich_text: [
+                  { text: { content: applicationFields.jobLocation } },
+                ],
+              },
+            }
+          : {}),
+        ...(WORKPLACE_TYPE_TO_LOCATION_TYPE[applicationFields.workplaceType]
+          ? {
+              "location type": {
+                select: {
+                  name: WORKPLACE_TYPE_TO_LOCATION_TYPE[
+                    applicationFields.workplaceType
+                  ],
+                },
+              },
+            }
+          : {}),
+        ...(applicationFields.postedDateRaw
+          ? {
+              "Posted Date Raw": {
+                rich_text: [
+                  { text: { content: applicationFields.postedDateRaw } },
+                ],
+              },
+            }
+          : {}),
       },
     }),
   });
