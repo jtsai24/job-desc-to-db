@@ -44,7 +44,7 @@ async function readPage() {
 
     const scriptResults = await browser.scripting.executeScript({
       target: { tabId: tab.id },
-      files: ["extract-application-fields.js"],
+      files: ["extract-linkedin-fields.js", "extract-application-fields.js"],
     });
 
     const firstScriptResult = scriptResults[0];
@@ -209,6 +209,10 @@ function displayApplicationFields(fields) {
     fields.company || "Not found";
   document.querySelector("#job-url").textContent =
     fields.url || "Not found";
+  document.querySelector("#workplace-type").textContent =
+    fields.workplaceType || "Not found";
+  document.querySelector("#posted-date-raw").textContent =
+    fields.postedDateRaw || "Not found";
   document.querySelector("#date-first-seen").textContent =
     fields.dateFirstSeen || "Not found";
   document.querySelector("#source").textContent =
