@@ -19,9 +19,21 @@
     return url.href;
   }
 
-  function chooseCompanyName(jobBoardFields, titleParts) {
-    if (jobBoardFields?.company) {
-      return jobBoardFields.company;
+  function extractSiteSpecificCompany() {
+    if (isLinkedInJobPage()) {
+      return extractLinkedInCompany();
+    }
+
+    if (isJobrightJobPage()) {
+      return extractJobrightCompany();
+    }
+
+    return null;
+  }
+
+  function chooseCompanyName(siteSpecificFields, titleParts) {
+    if (siteSpecificFields?.company) {
+      return siteSpecificFields.company;
     }
 
     if (titleParts.length > 1) {
@@ -59,9 +71,8 @@
     }
   }
 
-  // No JobPosting was found. Try job-board-specific rules. The LinkedIn
-  // method returns null when this is not a LinkedIn job page.
-  const jobBoardFields = extractLinkedInCompany();
+  // No JobPosting was found. Try rules for a recognized job board.
+  const siteSpecificFields = extractSiteSpecificCompany();
 
   // Last choice: generic rules that work without knowing the job board.
   const titleParts = document.title
@@ -74,13 +85,13 @@
       document.querySelector("h1")?.textContent?.trim() ??
       titleParts[0] ??
       null,
-    company: chooseCompanyName(jobBoardFields, titleParts),
+    company: chooseCompanyName(siteSpecificFields, titleParts),
     url: cleanJobUrl(window.location.href),
     workplaceType: extractLinkedInWorkplaceType(),
     jobLocation: extractLinkedInJobLocation(),
     postedDateRaw: extractLinkedInPostedDateRaw(),
     captureMethod:
-      jobBoardFields?.captureMethod ??
+      siteSpecificFields?.captureMethod ??
       "Page rules: h1 and document title",
   };
 })();

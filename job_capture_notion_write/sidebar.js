@@ -44,7 +44,11 @@ async function readPage() {
 
     const scriptResults = await browser.scripting.executeScript({
       target: { tabId: tab.id },
-      files: ["extract-linkedin-fields.js", "extract-application-fields.js"],
+      files: [
+        "extract-linkedin-fields.js",
+        "extract-jobright-fields.js",
+        "extract-application-fields.js",
+      ],
     });
 
     const firstScriptResult = scriptResults[0];
