@@ -33,3 +33,59 @@ function extractJobrightCompany() {
     captureMethod: "Page rules: Jobright company heading and h1",
   };
 }
+
+function extractJobrightListingDetails() {
+  if (!isJobrightJobPage()) {
+    return null;
+  }
+
+  const nextDataScript = document.querySelector("#__NEXT_DATA__");
+
+  if (!nextDataScript?.textContent) {
+    return null;
+  }
+
+  try {
+    const nextData = JSON.parse(nextDataScript.textContent);
+    const jobResult = nextData?.props?.pageProps?.dataSource?.jobResult;
+    const locations = Array.isArray(jobResult?.jobLocations)
+      ? jobResult.jobLocations.filter(Boolean)
+      : [];
+
+    return {
+      workplaceType: normalizeJobrightWorkplaceType(
+        jobResult?.workModel,
+        jobResult?.isRemote,
+      ),
+      jobLocation:
+        locations.join("; ") || jobResult?.jobLocation?.trim() || null,
+      postedDateRaw:
+        jobResult?.publishTimeDesc?.trim() ??
+        jobResult?.publishTime?.trim() ??
+        null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function normalizeJobrightWorkplaceType(workModel, isRemote) {
+  const normalizedWorkModel = workModel?.trim().toLowerCase();
+
+  if (normalizedWorkModel === "remote" || isRemote === true) {
+    return "remote";
+  }
+
+  if (normalizedWorkModel === "hybrid") {
+    return "hybrid";
+  }
+
+  if (
+    normalizedWorkModel === "onsite" ||
+    normalizedWorkModel === "on-site"
+  ) {
+    return "on-site";
+  }
+
+  return null;
+}

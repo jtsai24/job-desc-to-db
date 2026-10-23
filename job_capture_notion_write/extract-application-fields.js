@@ -43,6 +43,29 @@
     return null;
   }
 
+  function extractSiteSpecificListingDetails() {
+    if (isLinkedInJobPage()) {
+      return {
+        workplaceType: extractLinkedInWorkplaceType(),
+        jobLocation: extractLinkedInJobLocation(),
+        postedDateRaw: extractLinkedInPostedDateRaw(),
+      };
+    }
+
+    if (isJobrightJobPage()) {
+      return extractJobrightListingDetails();
+    }
+
+    return {
+      workplaceType: null,
+      jobLocation: null,
+      postedDateRaw: null,
+    };
+  }
+
+  const siteSpecificDetails =
+    extractSiteSpecificListingDetails();
+
   // First choice: standard Schema.org JobPosting structured data.
   const jsonLdScripts = document.querySelectorAll(
     'script[type="application/ld+json"]',
@@ -63,6 +86,9 @@
           jobTitle: jobPosting.title?.trim() ?? null,
           company: jobPosting.hiringOrganization?.name?.trim() ?? null,
           url: cleanJobUrl(jobPosting.url ?? window.location.href),
+          workplaceType: siteSpecificDetails?.workplaceType ?? null,
+          jobLocation: siteSpecificDetails?.jobLocation ?? null,
+          postedDateRaw: siteSpecificDetails?.postedDateRaw ?? null,
           captureMethod: "Structured data: Schema.org JobPosting",
         };
       }
@@ -87,9 +113,9 @@
       null,
     company: chooseCompanyName(siteSpecificFields, titleParts),
     url: cleanJobUrl(window.location.href),
-    workplaceType: extractLinkedInWorkplaceType(),
-    jobLocation: extractLinkedInJobLocation(),
-    postedDateRaw: extractLinkedInPostedDateRaw(),
+    workplaceType: siteSpecificDetails?.workplaceType ?? null,
+    jobLocation: siteSpecificDetails?.jobLocation ?? null,
+    postedDateRaw: siteSpecificDetails?.postedDateRaw ?? null,
     captureMethod:
       siteSpecificFields?.captureMethod ??
       "Page rules: h1 and document title",
